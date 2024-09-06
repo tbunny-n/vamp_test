@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "snuz.vamp.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "BatMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
