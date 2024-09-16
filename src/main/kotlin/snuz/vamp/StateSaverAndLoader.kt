@@ -12,8 +12,6 @@ import java.util.*
 class StateSaverAndLoader : PersistentState() {
     override fun writeNbt(nbtOrNull: NbtCompound?, registryLookup: RegistryWrapper.WrapperLookup?): NbtCompound? {
         val nbt = nbtOrNull ?: return null
-        nbt.putInt("totalDirtBlocksBroken", totalDirtBlocksBroken)
-
         val playersNbt = NbtCompound()
         players.forEach { (uuid, playerData) ->
             val playerNbt = NbtCompound()
@@ -30,8 +28,7 @@ class StateSaverAndLoader : PersistentState() {
         return nbt
     }
 
-    var totalDirtBlocksBroken: Int = 0 // ? TEMP: ?
-    var players: HashMap<UUID, PlayerData> = HashMap()
+    val players: HashMap<UUID, PlayerData> = HashMap()
 
     companion object {
         private val stateType: Type<StateSaverAndLoader> = Type(
@@ -55,11 +52,14 @@ class StateSaverAndLoader : PersistentState() {
                 return state
             }
 
-            state.totalDirtBlocksBroken = tag.getInt("totalDirtBlocksBroken")
-
             val playersNbt = tag.getCompound("players")
             playersNbt.keys.forEach { key ->
                 val playerData = PlayerData()
+
+                playerData.isVampire = playersNbt.getCompound(key).getBoolean("isVampire")
+                playerData.vampireLevel = playersNbt.getCompound(key).getInt("vampireLevel")
+                playerData.hasSanguine = playersNbt.getCompound(key).getBoolean("hasSanguine")
+                playerData.sanguineProgress = playersNbt.getCompound(key).getFloat("sanguineProgress")
 
                 val uuid = UUID.fromString(key)
                 state.players[uuid] = playerData
