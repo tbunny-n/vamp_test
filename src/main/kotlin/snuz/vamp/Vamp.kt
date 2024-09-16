@@ -27,9 +27,11 @@ object Vamp : ModInitializer {
             val plrPos = plr.pos
 
             val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@registerGlobalReceiver
-            plr.sendMessage(Text.literal("Has sanguine: " + playerState.hasSanguine.toString()))
+            plr.sendMessage(Text.literal("Sanguine progress: " + playerState.sanguineProgress.toString()))
 
-            // TODO: Make player data / state persistent
+            if (playerState.sanguineProgress < 0.1) {
+                return@registerGlobalReceiver
+            }
 
             val savedRaijinPos = RaijinPositions[plr]
             // Put down sign
