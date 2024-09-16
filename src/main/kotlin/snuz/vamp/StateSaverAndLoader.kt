@@ -17,7 +17,6 @@ class StateSaverAndLoader : PersistentState() {
         val playersNbt = NbtCompound()
         players.forEach { (uuid, playerData) ->
             val playerNbt = NbtCompound()
-            playerNbt.putInt("dirtBlocksBroken", playerData.dirtBlocksBroken)
 
             playerNbt.putInt("vampireLevel", playerData.vampireLevel)
             playerNbt.putBoolean("isVampire", playerData.isVampire)
@@ -61,7 +60,6 @@ class StateSaverAndLoader : PersistentState() {
             val playersNbt = tag.getCompound("players")
             playersNbt.keys.forEach { key ->
                 val playerData = PlayerData()
-                playerData.dirtBlocksBroken = playersNbt.getCompound(key).getInt("dirtBlocksBroken")
 
                 val uuid = UUID.fromString(key)
                 state.players[uuid] = playerData

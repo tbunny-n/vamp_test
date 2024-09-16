@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
-import net.minecraft.util.math.BlockPos
 import org.lwjgl.glfw.GLFW
 
 object VampClient : ClientModInitializer {
@@ -26,7 +25,7 @@ object VampClient : ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register { client ->
             while (RAIJIN_KEYBIND.wasPressed()) {
                 // Tell the server that client wants to use flying raijin
-                ClientPlayNetworking.send(FlyingRaijinPayload(BlockPos.ORIGIN))
+                ClientPlayNetworking.send(FlyingRaijinPayload)
             }
         }
         // Networking
