@@ -1,6 +1,7 @@
 package snuz.vamp
 
 import net.fabricmc.api.ModInitializer
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.server.network.ServerPlayerEntity
@@ -13,12 +14,38 @@ object Vamp : ModInitializer {
 
     const val MOD_ID = "vamp"
 
-    val RaijinPositions: HashMap<ServerPlayerEntity, Vec3d> = HashMap()
+    private val RaijinPositions: HashMap<ServerPlayerEntity, Vec3d> = HashMap()
+
+    private const val SANGUINARE_INCREMENT_AMOUNT: Float = 0.2f
 
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
         // However, some things (like resources) may still be uninitialized.
         // Proceed with mild caution.
+
+        // Server events
+        var lastNightTime = 0L
+        ServerTickEvents.END_SERVER_TICK.register { server ->
+            server.worlds.forEach { world ->
+                val currentTime = world.timeOfDay % 24000 // Get time of day (0 - 24000)
+                val currentNight = world.timeOfDay / 24000
+
+                // Increment sanguinare specimen once per night
+                if (currentTime in 18000..20000 && currentNight != lastNightTime) {
+                    lastNightTime = currentNight
+
+                    server.playerManager.playerList.forEach { player ->
+                        val playerState = StateSaverAndLoader.getPlayerState(player)
+                        if (playerState != null) {
+                            if (playerState.hasSanguinare) {
+                                playerState.sanguinareProgress += SANGUINARE_INCREMENT_AMOUNT
+                                player.sendMessage(Text.literal("GRAHHHH!!!!"))
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // Register networking events
         PayloadTypeRegistry.playC2S().register(FlyingRaijinPayload.ID, FlyingRaijinPayload.CODEC)
@@ -27,9 +54,9 @@ object Vamp : ModInitializer {
             val plrPos = plr.pos
 
             val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@registerGlobalReceiver
-            plr.sendMessage(Text.literal("Sanguine progress: " + playerState.sanguineProgress.toString()))
+            plr.sendMessage(Text.literal("Sanguine progress: " + playerState.sanguinareProgress.toString()))
 
-            if (playerState.sanguineProgress < 0.1) {
+            if (playerState.sanguinareProgress < 0.1) {
                 return@registerGlobalReceiver
             }
 

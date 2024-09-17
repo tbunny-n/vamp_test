@@ -18,7 +18,7 @@ class BatAttackGoal(private val bat: BatEntity) : Goal() {
 
     companion object {
         private const val BAT_CHASE_SPEED: Double = 0.4
-        private const val SANGUINE_CHANCE_ON_HIT: Int = 3 // Percent chance to inflict sanguine
+        private const val SANGUINE_CHANCE_ON_HIT: Int = 3 // Percent chance to inflict sanguinare
 
         @JvmStatic
         fun getChaseSpeed(): Double {
@@ -62,21 +62,21 @@ class BatAttackGoal(private val bat: BatEntity) : Goal() {
             targetEntity.damage(VampDamageTypes.of(bat.world, VampDamageTypes.BAT_DAMAGE_TYPE), damageAmount)
             ticksSinceLastAttack = 0
 
-            // * Chance to give target sanguine
+            // * Chance to give target sanguinare vampirism
             // Check if entity is player
             if (!targetEntity.isPlayer) {
                 return
             }
             val randomNumber = Random.nextInt(100)
             if (randomNumber <= SANGUINE_CHANCE_ON_HIT) {
-                // Inflict sanguine
+                // Inflict sanguinare
                 val playerState = StateSaverAndLoader.getPlayerState(targetEntity) ?: return
-                if (playerState.isVampire || playerState.hasSanguine) {
+                if (playerState.isVampire || playerState.hasSanguinare) {
                     return
                 }
 
-                playerState.hasSanguine = true
-                playerState.sanguineProgress = 0.1f
+                playerState.hasSanguinare = true
+                playerState.sanguinareProgress = 0.1f
                 targetEntity.sendMessage(Text.literal("you're... infected..."))
             }
         }

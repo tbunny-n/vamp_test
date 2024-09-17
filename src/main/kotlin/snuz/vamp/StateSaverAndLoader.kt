@@ -18,8 +18,8 @@ class StateSaverAndLoader : PersistentState() {
 
             playerNbt.putInt("vampireLevel", playerData.vampireLevel)
             playerNbt.putBoolean("isVampire", playerData.isVampire)
-            playerNbt.putBoolean("hasSanguine", playerData.hasSanguine)
-            playerNbt.putFloat("sanguineProgress", playerData.sanguineProgress)
+            playerNbt.putBoolean("hasSanguinare", playerData.hasSanguinare)
+            playerNbt.putFloat("sanguinareProgress", playerData.sanguinareProgress)
 
             playersNbt.put(uuid.toString(), playerNbt)
         }
@@ -58,8 +58,8 @@ class StateSaverAndLoader : PersistentState() {
 
                 playerData.isVampire = playersNbt.getCompound(key).getBoolean("isVampire")
                 playerData.vampireLevel = playersNbt.getCompound(key).getInt("vampireLevel")
-                playerData.hasSanguine = playersNbt.getCompound(key).getBoolean("hasSanguine")
-                playerData.sanguineProgress = playersNbt.getCompound(key).getFloat("sanguineProgress")
+                playerData.hasSanguinare = playersNbt.getCompound(key).getBoolean("hasSanguinare")
+                playerData.sanguinareProgress = playersNbt.getCompound(key).getFloat("sanguinareProgress")
 
                 val uuid = UUID.fromString(key)
                 state.players[uuid] = playerData
