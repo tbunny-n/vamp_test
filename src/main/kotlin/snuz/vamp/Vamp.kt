@@ -31,6 +31,8 @@ object Vamp : ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register { server ->
             server.worlds.forEach { world ->
                 val worldTime = world.timeOfDay % 24000
+                // ! These [if statements] run once per cycle thanks to the second condition,
+                // so the effects have the `duration` of the cycle.
                 if (worldTime in 14000..23000 && lastWorldTime < 14000) {
                     // Apply nighttime status effects
                     server.playerManager.playerList.forEach { player ->
