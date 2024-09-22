@@ -1,4 +1,4 @@
-package snuz.vamp
+package snuz.vamp.network
 
 import net.minecraft.network.RegistryByteBuf
 import net.minecraft.network.codec.PacketCodec

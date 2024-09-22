@@ -1,15 +1,19 @@
 package snuz.vamp
 
 import net.fabricmc.api.ModInitializer
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.effect.StatusEffectInstance
 import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 import net.minecraft.util.math.Vec3d
 import org.slf4j.LoggerFactory
+import snuz.vamp.network.BloodSuckPayload
+import snuz.vamp.network.FlyingRaijinPayload
 
 object Vamp : ModInitializer {
     private val logger = LoggerFactory.getLogger("vamp")
@@ -18,116 +22,94 @@ object Vamp : ModInitializer {
 
     private val RaijinPositions: HashMap<ServerPlayerEntity, Vec3d> = HashMap()
 
-    private const val SANGUINARE_INCREMENT_AMOUNT: Float = 0.2f
-    private const val TEN_MIN_DURATION: Int = 11000
+    private const val BLOOD_SUCK_RANGE: Double = 9.0
+    private const val DAYLIGHT_EVENT_INTERVAL: Long = 200L
 
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
-        // However, some things (like resources) may still be uninitialized.
+
+        // However, some things (like resources) may stil be uninitialized.
         // Proceed with mild caution.
 
-        // Server events
-        var lastWorldTime: Long = -1
+        var lastDaylightEvent = 0L
         ServerTickEvents.END_SERVER_TICK.register { server ->
-            server.worlds.forEach { world ->
-                val worldTime = world.timeOfDay % 24000
-                // ! These [if statements] run once per cycle thanks to the second condition,
-                // so the effects have the `duration` of the cycle.
-                if (worldTime in 14000..23000 && lastWorldTime < 14000) {
-                    // Apply nighttime status effects
-                    server.playerManager.playerList.forEach { player ->
-                        val playerState = StateSaverAndLoader.getPlayerState(player)
-                        if (playerState != null) {
-                            if (playerState.isVampire || playerState.hasSanguinare) {
-                                playerState.sanguinareProgress += SANGUINARE_INCREMENT_AMOUNT // Progress sanguinare
+            val overworld = server.overworld
+            val worldTicks = overworld.timeOfDay
+            if (worldTicks - lastDaylightEvent >= DAYLIGHT_EVENT_INTERVAL) {
+                overworld.players.forEach { player -> player.sendMessage(Text.literal("Hi bitch")) }
+                val dayNumber = worldTicks / 24000
+                val timeOfDay = worldTicks % 24000
 
-                                player.removeStatusEffect(
-                                    StatusEffects.WEAKNESS
-                                )
-                                player.addStatusEffect(
-                                    StatusEffectInstance(
-                                        StatusEffects.NIGHT_VISION,
-                                        TEN_MIN_DURATION,
-                                        0,
-                                    )
-                                )
-
-                                val strengthAmp = when {
-                                    playerState.vampireLevel > 33 -> 2
-                                    playerState.sanguinareProgress > 1.4 -> 1
-                                    else -> 0
-                                }
-                                player.addStatusEffect(
-                                    StatusEffectInstance(
-                                        StatusEffects.STRENGTH,
-                                        TEN_MIN_DURATION,
-                                        strengthAmp,
-                                    )
-                                )
-
-                                val speedAmp = when {
-                                    playerState.vampireLevel > 38 -> 2
-                                    playerState.sanguinareProgress > 1.2 -> 1
-                                    else -> 0
-                                }
-                                player.addStatusEffect(
-                                    StatusEffectInstance(
-                                        StatusEffects.SPEED,
-                                        TEN_MIN_DURATION,
-                                        speedAmp,
-                                    )
-                                )
-
-                                val resistanceAmp = when {
-                                    playerState.vampireLevel > 41 -> 2
-                                    playerState.vampireLevel > 18 -> 1
-                                    else -> 0
-                                }
-                                player.addStatusEffect(
-                                    StatusEffectInstance(
-                                        StatusEffects.RESISTANCE,
-                                        TEN_MIN_DURATION,
-                                        resistanceAmp,
-                                    )
-                                )
-                            }
-                        }
-                    }
-                } else if (worldTime in 200..12000 && lastWorldTime > 12000) {
-                    // Apply daytime status effects
-                    server.playerManager.playerList.forEach { player ->
-                        val playerState = StateSaverAndLoader.getPlayerState(player)
-                        if (playerState != null) {
-                            if (playerState.isVampire || playerState.hasSanguinare) {
-                                player.removeStatusEffect(
-                                    StatusEffects.NIGHT_VISION
-                                )
-                                player.removeStatusEffect(
-                                    StatusEffects.STRENGTH
-                                )
-                                player.removeStatusEffect(
-                                    StatusEffects.RESISTANCE
-                                )
-                                player.removeStatusEffect(
-                                    StatusEffects.SPEED
-                                )
-                                player.addStatusEffect(
-                                    StatusEffectInstance(
-                                        StatusEffects.WEAKNESS,
-                                        TEN_MIN_DURATION,
-                                        0,
-                                    )
-                                )
-                            }
-                        }
-                    }
+                if (timeOfDay in 13000..24000) {
+                    // Nighttime
+                    logger.info("Goon night")
+                } else {
+                    // Daytime
+                    logger.info("Goon morning")
                 }
-                lastWorldTime = worldTime
+
+                lastDaylightEvent = worldTicks // Reset lastDaylightEvents
             }
         }
 
+        ServerPlayerEvents.AFTER_RESPAWN.register { plr, old_plr, b ->
+            plr.sendMessage(Text.literal("eeee"))
+            old_plr.sendMessage(Text.literal("oooo"))
+        }
 
-        // Register networking events
+        // Networking events --
+
+        // * Blood sucking
+        PayloadTypeRegistry.playC2S().register(BloodSuckPayload.ID, BloodSuckPayload.CODEC)
+        ServerPlayNetworking.registerGlobalReceiver(BloodSuckPayload.ID) { payload, context ->
+            val plr = context.player()
+            val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@registerGlobalReceiver
+            if (!playerState.hasSanguinare || !playerState.isVampire) return@registerGlobalReceiver
+            val entityId = payload.entityId
+            val targetEntity = plr.serverWorld.getEntityById(entityId) ?: return@registerGlobalReceiver
+            if (!targetEntity.isAlive) return@registerGlobalReceiver
+            // Distance check
+            if (!plr.pos.isWithinRangeOf(targetEntity.pos, BLOOD_SUCK_RANGE, 2.0)) return@registerGlobalReceiver
+
+            val livingVillager = targetEntity as LivingEntity
+
+            livingVillager.addStatusEffect(
+                StatusEffectInstance(
+                    StatusEffects.SLOWNESS, 40, 2,
+                )
+            )
+            livingVillager.addStatusEffect(
+                StatusEffectInstance(
+                    StatusEffects.NAUSEA, 200, 2,
+                )
+            )
+
+            plr.heal(playerState.getBloodSuckSteal())
+            plr.hungerManager.saturationLevel += playerState.getBloodSuckSaturation()
+            plr.hungerManager.foodLevel += playerState.getBloodSuckFood()
+
+
+            targetEntity.damage(
+                VampDamageTypes.of(
+                    plr.world,
+                    VampDamageTypes.BLOOD_SUCK_DAMAGE_TYPE,
+                ), playerState.getBloodSuckDamage()
+            )
+            if (playerState.vampireLevel > 8) {
+                targetEntity.velocity = Vec3d.ZERO // Prevent knockback
+            }
+
+            // Killed villager, progress sanguinare
+            // TODO: Give this a unique sanguinare increment integer
+            if (!targetEntity.isAlive) {
+                playerState.progressSanguinare()
+                plr.sendMessage(Text.literal("you fucked him..."))
+            }
+
+            playerState.lastFeed = plr.serverWorld.timeOfDay
+        }
+
+        // * Flying Raijin
         PayloadTypeRegistry.playC2S().register(FlyingRaijinPayload.ID, FlyingRaijinPayload.CODEC)
         ServerPlayNetworking.registerGlobalReceiver(FlyingRaijinPayload.ID) { _, context ->
             val plr = context.player()

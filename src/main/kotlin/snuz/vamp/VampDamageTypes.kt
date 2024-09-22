@@ -14,6 +14,9 @@ object VampDamageTypes {
     val BAT_DAMAGE_TYPE: RegistryKey<DamageType> =
         RegistryKey.of(RegistryKeys.DAMAGE_TYPE, Identifier.of("vamp", "bat_damage"))
 
+    val BLOOD_SUCK_DAMAGE_TYPE: RegistryKey<DamageType> =
+        RegistryKey.of(RegistryKeys.DAMAGE_TYPE, Identifier.of("vamp", "blood_suck_damage"))
+
     fun of(world: World, key: RegistryKey<DamageType>): DamageSource {
         return DamageSource(world.registryManager[RegistryKeys.DAMAGE_TYPE].entryOf(key))
     }
