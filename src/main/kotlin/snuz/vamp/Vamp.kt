@@ -124,7 +124,8 @@ object Vamp : ModInitializer {
             // Killed villager, progress sanguinare
             // TODO: Give this a unique sanguinare increment integer
             if (!targetEntity.isAlive) {
-                playerState.progressSanguinare() plr.sendMessage(Text.literal("you fucked him..."))
+                playerState.progressSanguinare()
+                plr.sendMessage(Text.literal("you fucked him..."))
             }
 
             playerState.lastFeed = plr.serverWorld.timeOfDay

@@ -175,6 +175,16 @@ class PlayerData {
         if (sanguinareProgress > 0.1) {
             if (isPlayerInSunlight(plr)) {
                 plr.setOnFireFor(8f)
+                plr.addStatusEffect(
+                    StatusEffectInstance(
+                        StatusEffects.WEAKNESS,
+                        DEFAULT_EFFECT_DURATION,
+                        0,
+                        true,
+                        false,
+                        false
+                    )
+                )
             }
         }
 
