@@ -21,6 +21,7 @@ import net.minecraft.world.GameRules
 import org.slf4j.LoggerFactory
 import snuz.vamp.mixin.ServerWorldAccessors
 import snuz.vamp.network.BloodSuckPayload
+import snuz.vamp.network.CloakAbilityPayload
 import snuz.vamp.network.FlyingRaijinPayload
 
 object Vamp : ModInitializer {
@@ -151,6 +152,30 @@ object Vamp : ModInitializer {
             }
 
             playerState.lastFeed = plr.serverWorld.timeOfDay
+        }
+
+        // * Cloak
+        PayloadTypeRegistry.playC2S().register(CloakAbilityPayload.ID, CloakAbilityPayload.CODEC)
+        ServerPlayNetworking.registerGlobalReceiver(CloakAbilityPayload.ID) { _, context ->
+            val plr = context.player()
+            val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@registerGlobalReceiver
+            if (playerState.vampireLevel < 26) return@registerGlobalReceiver
+
+            val isInvisible = plr.hasStatusEffect(StatusEffects.INVISIBILITY)
+            if (!isInvisible) {
+                plr.addStatusEffect(
+                    StatusEffectInstance(
+                        StatusEffects.INVISIBILITY,
+                        20000,
+                        5,
+                        false,
+                        false,
+                        true,
+                    )
+                )
+            } else {
+                plr.removeStatusEffect(StatusEffects.INVISIBILITY)
+            }
         }
 
         // * Flying Raijin
