@@ -112,6 +112,7 @@ class PlayerData {
     }
 
     fun applyNightTimeEffects(plr: ServerPlayerEntity) {
+        if (!plr.isAlive) return
         val plrPos = plr.blockPos
         plr.serverWorld.isSkyVisible(plrPos)
         if (sanguinareProgress > 0.1) {
@@ -172,6 +173,7 @@ class PlayerData {
     }
 
     fun applyDayTimeEffects(plr: ServerPlayerEntity) {
+        if (!plr.isAlive) return
         if (sanguinareProgress > 0.1) {
             if (isPlayerInSunlight(plr)) {
                 plr.setOnFireFor(8f)
