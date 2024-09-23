@@ -88,8 +88,18 @@ class PlayerData {
                 ICKY_BLOOD_NAUSEA_DURATION,
                 0,
                 true,
-                false,
-                false,
+                true,
+                true,
+            )
+        )
+        plr.addStatusEffect(
+            StatusEffectInstance(
+                StatusEffects.HUNGER,
+                ICKY_BLOOD_NAUSEA_DURATION,
+                2,
+                true,
+                true,
+                true,
             )
         )
     }

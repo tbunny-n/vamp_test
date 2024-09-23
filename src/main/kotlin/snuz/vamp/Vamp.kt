@@ -30,38 +30,24 @@ object Vamp : ModInitializer {
 
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
-
         // However, some things (like resources) may still be uninitialized.
         // Proceed with mild caution.
 
-        var isDayTime = true
-
-        var lastDaylightEvent = 0L
         // ? Not sure that I actually want to run this every tick
         ServerTickEvents.END_SERVER_TICK.register { server ->
             val overworld = server.overworld
-            val worldTicks = overworld.timeOfDay
-            // !! if (worldTicks - lastDaylightEvent >= DAYLIGHT_EVENT_INTERVAL) {
-            worldTicks / 24000
-            val timeOfDay = worldTicks % 24000
-
-            if (timeOfDay in 13000..24000) {
+            if (!overworld.isDay) {
                 // Nighttime
-                isDayTime = false
                 overworld.players.forEach { plr ->
                     val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@forEach
                     playerState.applyNightTimeEffects(plr)
                 }
             } else {
                 // Daytime
-                isDayTime = true
                 overworld.players.forEach { plr ->
                     val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@forEach
                     playerState.applyDayTimeEffects(plr)
-                    // !! }
                 }
-
-                lastDaylightEvent = worldTicks // Reset lastDaylightEvents
             }
         }
 
@@ -95,14 +81,14 @@ object Vamp : ModInitializer {
             // Distance check
             if (!plr.pos.isWithinRangeOf(targetEntity.pos, BLOOD_SUCK_RANGE, 2.0)) return@registerGlobalReceiver
 
-            val livingVillager = targetEntity as LivingEntity
+            val livingTarget = targetEntity as LivingEntity
 
-            livingVillager.addStatusEffect(
+            livingTarget.addStatusEffect(
                 StatusEffectInstance(
                     StatusEffects.SLOWNESS, 40, 2,
                 )
             )
-            livingVillager.addStatusEffect(
+            livingTarget.addStatusEffect(
                 StatusEffectInstance(
                     StatusEffects.NAUSEA, 200, 2,
                 )
@@ -123,10 +109,10 @@ object Vamp : ModInitializer {
                 targetEntity.velocity = Vec3d.ZERO // Prevent knockback
             }
 
-            // Killed villager, progress sanguinare
-            // TODO: Give this a unique sanguinare increment integer
+            // Killed entity via blood sucking
             if (!targetEntity.isAlive) {
                 if (targetEntity is VillagerEntity) {
+                    // TODO: Give this a unique sanguinare increment integer
                     playerState.progressSanguinare()
                     plr.sendMessage(Text.literal("you fucked him..."))
                 } else if (targetEntity is ZombieEntity) {
