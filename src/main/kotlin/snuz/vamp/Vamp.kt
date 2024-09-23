@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.effect.StatusEffectInstance
@@ -28,24 +29,34 @@ object Vamp : ModInitializer {
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
 
-        // However, some things (like resources) may stil be uninitialized.
+        // However, some things (like resources) may still be uninitialized.
         // Proceed with mild caution.
 
+        var isDayTime = true
+
         var lastDaylightEvent = 0L
+        // ? Not sure that I actually want to run this every tick
         ServerTickEvents.END_SERVER_TICK.register { server ->
             val overworld = server.overworld
             val worldTicks = overworld.timeOfDay
-            if (worldTicks - lastDaylightEvent >= DAYLIGHT_EVENT_INTERVAL) {
-                overworld.players.forEach { player -> player.sendMessage(Text.literal("Hi bitch")) }
-                val dayNumber = worldTicks / 24000
-                val timeOfDay = worldTicks % 24000
+            // !! if (worldTicks - lastDaylightEvent >= DAYLIGHT_EVENT_INTERVAL) {
+            worldTicks / 24000
+            val timeOfDay = worldTicks % 24000
 
-                if (timeOfDay in 13000..24000) {
-                    // Nighttime
-                    logger.info("Goon night")
-                } else {
-                    // Daytime
-                    logger.info("Goon morning")
+            if (timeOfDay in 13000..24000) {
+                // Nighttime
+                isDayTime = false
+                overworld.players.forEach { plr ->
+                    val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@forEach
+                    playerState.applyNightTimeEffects(plr)
+                }
+            } else {
+                // Daytime
+                isDayTime = true
+                overworld.players.forEach { plr ->
+                    val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@forEach
+                    playerState.applyDayTimeEffects(plr)
+                    // !! }
                 }
 
                 lastDaylightEvent = worldTicks // Reset lastDaylightEvents
@@ -57,6 +68,17 @@ object Vamp : ModInitializer {
             old_plr.sendMessage(Text.literal("oooo"))
         }
 
+        // Run upon player join
+        ServerPlayConnectionEvents.JOIN.register { networkHandler, packetSender, server ->
+            val plr = networkHandler.player
+            val playerState = StateSaverAndLoader.getPlayerState(plr)
+            if (playerState == null) {
+                logger.info("Player state could not be loaded for player: [${plr.name} | ${plr.id}]")
+                return@register
+            }
+
+            logger.info("Player state loaded for player: [${plr.name} | ${plr.id}]")
+        }
         // Networking events --
 
         // * Blood sucking
@@ -102,8 +124,7 @@ object Vamp : ModInitializer {
             // Killed villager, progress sanguinare
             // TODO: Give this a unique sanguinare increment integer
             if (!targetEntity.isAlive) {
-                playerState.progressSanguinare()
-                plr.sendMessage(Text.literal("you fucked him..."))
+                playerState.progressSanguinare() plr.sendMessage(Text.literal("you fucked him..."))
             }
 
             playerState.lastFeed = plr.serverWorld.timeOfDay

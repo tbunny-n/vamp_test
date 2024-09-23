@@ -1,7 +1,12 @@
 package snuz.vamp
 
+import net.minecraft.entity.effect.StatusEffectInstance
+import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
+
+private const val DEFAULT_EFFECT_DURATION: Int = 300
+private const val NIGHT_VISION_DURATION: Int = 1000 // Can't be too low due to epilepsy trigger !!
 
 class PlayerData {
     var hasSanguinare: Boolean = true // Sanguine is what turns players into vamps
@@ -104,5 +109,74 @@ class PlayerData {
         val skylightLevel = world.getLightLevel(pos, 0)
 
         return isExposedToSky && skylightLevel > 0
+    }
+
+    fun applyNightTimeEffects(plr: ServerPlayerEntity) {
+        val plrPos = plr.blockPos
+        plr.serverWorld.isSkyVisible(plrPos)
+        if (sanguinareProgress > 0.1) {
+            plr.addStatusEffect(
+                StatusEffectInstance(
+                    StatusEffects.SPEED,
+                    DEFAULT_EFFECT_DURATION,
+                    getSpeed(),
+                    true,
+                    false,
+                    false
+                )
+            )
+            plr.addStatusEffect(
+                StatusEffectInstance(
+                    StatusEffects.STRENGTH,
+                    DEFAULT_EFFECT_DURATION,
+                    getStrength(),
+                    true,
+                    false,
+                    false
+                )
+            )
+            plr.addStatusEffect(
+                StatusEffectInstance(
+                    StatusEffects.RESISTANCE,
+                    DEFAULT_EFFECT_DURATION,
+                    getResistance(),
+                    true,
+                    false,
+                    false
+                )
+            )
+            plr.addStatusEffect(
+                StatusEffectInstance(
+                    StatusEffects.NIGHT_VISION,
+                    NIGHT_VISION_DURATION,
+                    1,
+                    true,
+                    false,
+                    false
+                )
+            )
+
+            if (vampireLevel > 23) {
+                plr.addStatusEffect(
+                    StatusEffectInstance(
+                        StatusEffects.WATER_BREATHING,
+                        DEFAULT_EFFECT_DURATION,
+                        1,
+                        true,
+                        false,
+                        false
+                    )
+                )
+            }
+        }
+    }
+
+    fun applyDayTimeEffects(plr: ServerPlayerEntity) {
+        if (sanguinareProgress > 0.1) {
+            if (isPlayerInSunlight(plr)) {
+                plr.setOnFireFor(8f)
+            }
+        }
+
     }
 }
