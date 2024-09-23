@@ -9,6 +9,8 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.effect.StatusEffectInstance
 import net.minecraft.entity.effect.StatusEffects
+import net.minecraft.entity.mob.ZombieEntity
+import net.minecraft.entity.passive.VillagerEntity
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.Text
 import net.minecraft.util.math.Vec3d
@@ -124,8 +126,14 @@ object Vamp : ModInitializer {
             // Killed villager, progress sanguinare
             // TODO: Give this a unique sanguinare increment integer
             if (!targetEntity.isAlive) {
-                playerState.progressSanguinare()
-                plr.sendMessage(Text.literal("you fucked him..."))
+                if (targetEntity is VillagerEntity) {
+                    playerState.progressSanguinare()
+                    plr.sendMessage(Text.literal("you fucked him..."))
+                } else if (targetEntity is ZombieEntity) {
+                    playerState.ickyBlood(plr)
+                } else {
+                    plr.sendMessage(Text.literal("rip vro"))
+                }
             }
 
             playerState.lastFeed = plr.serverWorld.timeOfDay

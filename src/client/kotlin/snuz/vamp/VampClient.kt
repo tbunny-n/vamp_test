@@ -9,6 +9,7 @@ import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
 import net.minecraft.entity.Entity
 import net.minecraft.entity.mob.PillagerEntity
+import net.minecraft.entity.mob.ZombieEntity
 import net.minecraft.entity.passive.CowEntity
 import net.minecraft.entity.passive.GoatEntity
 import net.minecraft.entity.passive.PigEntity
@@ -30,6 +31,7 @@ object VampClient : ClientModInitializer {
         CowEntity::class.java,
         SheepEntity::class.java,
         GoatEntity::class.java,
+        ZombieEntity::class.java,
     )
 
     override fun onInitializeClient() {

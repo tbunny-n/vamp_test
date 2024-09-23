@@ -6,7 +6,8 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
 
 private const val DEFAULT_EFFECT_DURATION: Int = 300
-private const val NIGHT_VISION_DURATION: Int = 1000 // Can't be too low due to epilepsy trigger !!
+private const val NIGHT_VISION_DURATION: Int = 800 // Can't be too low due to epilepsy trigger !!
+private const val ICKY_BLOOD_NAUSEA_DURATION: Int = 500
 
 class PlayerData {
     var hasSanguinare: Boolean = true // Sanguine is what turns players into vamps
@@ -78,6 +79,19 @@ class PlayerData {
             this.sanguinareProgress > 10.0 -> 2
             else -> 1
         }
+    }
+
+    fun ickyBlood(plr: ServerPlayerEntity) {
+        plr.addStatusEffect(
+            StatusEffectInstance(
+                StatusEffects.NAUSEA,
+                ICKY_BLOOD_NAUSEA_DURATION,
+                0,
+                true,
+                false,
+                false,
+            )
+        )
     }
 
     private fun getSanguinareIncrease(): Float {
