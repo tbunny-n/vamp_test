@@ -10,7 +10,7 @@ private const val NIGHT_VISION_DURATION: Int = 800 // Can't be too low due to ep
 private const val ICKY_BLOOD_NAUSEA_DURATION: Int = 500
 
 class PlayerData {
-    var hasSanguinare: Boolean = true // Sanguine is what turns players into vamps
+    var hasSanguinare: Boolean = true // Sanguinare is what turns players into vamps
     var sanguinareProgress: Float = 5.0f
     var isVampire: Boolean = true
     var vampireLevel: Int = 50
@@ -137,8 +137,6 @@ class PlayerData {
 
     fun applyNightTimeEffects(plr: ServerPlayerEntity) {
         if (!plr.isAlive) return
-        val plrPos = plr.blockPos
-        plr.serverWorld.isSkyVisible(plrPos)
         if (sanguinareProgress > 0.1) {
             plr.addStatusEffect(
                 StatusEffectInstance(

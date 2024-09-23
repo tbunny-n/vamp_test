@@ -3,7 +3,8 @@
   "package": "snuz.vamp.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "BatMixin"
+    "BatMixin",
+    "ServerWorldAccessors"
   ],
   "injectors": {
     "defaultRequire": 1

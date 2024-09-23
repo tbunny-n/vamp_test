@@ -1,6 +1,7 @@
 package snuz.vamp
 
 import net.fabricmc.api.ModInitializer
+import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
@@ -12,9 +13,13 @@ import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.entity.mob.ZombieEntity
 import net.minecraft.entity.passive.VillagerEntity
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.Text
+import net.minecraft.util.ActionResult
 import net.minecraft.util.math.Vec3d
+import net.minecraft.world.GameRules
 import org.slf4j.LoggerFactory
+import snuz.vamp.mixin.ServerWorldAccessors
 import snuz.vamp.network.BloodSuckPayload
 import snuz.vamp.network.FlyingRaijinPayload
 
@@ -55,6 +60,29 @@ object Vamp : ModInitializer {
             plr.sendMessage(Text.literal("eeee"))
             old_plr.sendMessage(Text.literal("oooo"))
         }
+
+        EntitySleepEvents.ALLOW_SLEEP_TIME.register(EntitySleepEvents.AllowSleepTime { plr, _, vanillaResult ->
+            val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@AllowSleepTime ActionResult.PASS
+            if (playerState.sanguinareProgress < 0.1) return@AllowSleepTime ActionResult.PASS
+            val serverWorld = plr.world as ServerWorld
+            if (!serverWorld.isDay) return@AllowSleepTime ActionResult.FAIL
+            serverWorld.updateSleepingPlayers()
+            val sleepPercentage = serverWorld.gameRules.getInt(GameRules.PLAYERS_SLEEPING_PERCENTAGE)
+            val sleepManager = (serverWorld as ServerWorldAccessors).sleepManager
+            if (sleepManager.canSkipNight(sleepPercentage) && sleepManager.canResetTime(
+                    sleepPercentage,
+                    (serverWorld as ServerWorldAccessors).players
+                )
+            ) {
+                if (serverWorld.gameRules.getBoolean(GameRules.DO_DAYLIGHT_CYCLE)) {
+                    val t = serverWorld.timeOfDay + 12000L
+                    serverWorld.timeOfDay = t - t % 12000L
+                }
+                (serverWorld as ServerWorldAccessors).invokeWakeSleepingPlayers()
+                if (serverWorld.gameRules.getBoolean(GameRules.DO_WEATHER_CYCLE)) (serverWorld as ServerWorldAccessors).invokeResetWeather()
+            }
+            return@AllowSleepTime if (vanillaResult == serverWorld.isNight) ActionResult.SUCCESS else ActionResult.PASS
+        })
 
         // Run upon player join
         ServerPlayConnectionEvents.JOIN.register { networkHandler, packetSender, server ->
