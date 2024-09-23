@@ -20,8 +20,11 @@ import snuz.vamp.network.FlyingRaijinPayload
 object VampClient : ClientModInitializer {
     private const val RAIJIN_COOLDOWN: Double = 1.5
     private const val CLOAK_COOLDOWN: Double = 1.5
+    private const val SPEED_COOLDOWN: Double = 1.5
+
     private lateinit var RAIJIN_KEYBIND: KeyBinding
     private lateinit var CLOAK_KEYBIND: KeyBinding
+    private lateinit var SPEED_KEYBIND: KeyBinding
 
     private val FEASTABLE_MOBS: List<Class<out Entity>> = listOf(
         VillagerEntity::class.java,
@@ -39,7 +42,7 @@ object VampClient : ClientModInitializer {
             KeyBinding(
                 "key.vamp.raijin",
                 InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_R,
+                GLFW.GLFW_KEY_C,
                 "category.vamp"
             )
         )
@@ -48,6 +51,14 @@ object VampClient : ClientModInitializer {
                 "key.vamp.cloak",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_V,
+                "category.vamp"
+            )
+        )
+        SPEED_KEYBIND = KeyBindingHelper.registerKeyBinding(
+            KeyBinding(
+                "key.vamp.speed",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_R,
                 "category.vamp"
             )
         )
@@ -68,6 +79,9 @@ object VampClient : ClientModInitializer {
             }
             while (CLOAK_KEYBIND.wasPressed()) {
                 ClientPlayNetworking.send(CloakAbilityPayload)
+            }
+            while (SPEED_KEYBIND.wasPressed()) {
+                TODO()
             }
         }
         // Networking
