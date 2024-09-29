@@ -208,7 +208,7 @@ object Vamp : ModInitializer {
             BlockPos.iterate(targetPos.add(-2, -2, -2), targetPos.add(2, 2, 2)).forEach { pos ->
                 // Light surrounding blocks
                 if (world.isAir(pos.up())) {
-                    world.setBlockState(pos.up(), Blocks.FIRE.defaultState, 3)
+                    world.setBlockState(pos.up(), Blocks.FIRE.defaultState)
                 }
 
                 // Drip down
@@ -217,7 +217,9 @@ object Vamp : ModInitializer {
                     lastAirBlock = lastAirBlock.down()
                 }
 
-                world.setBlockState(lastAirBlock.up(), Blocks.FIRE.defaultState, 3)
+                if (world.isAir(lastAirBlock.up())) {
+                    world.setBlockState(lastAirBlock.up(), Blocks.FIRE.defaultState)
+                }
             }
 
             plr.sendMessage(Text.literal("Amaterasu!!"))
