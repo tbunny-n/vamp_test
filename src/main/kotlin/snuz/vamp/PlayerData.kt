@@ -17,7 +17,6 @@ class PlayerData {
     var lastFeed: Long = 0L
 
     // ** Calculate Stats ** ---------
-
     fun getStrength(): Int {
         return when {
             this.vampireLevel > 40 -> 3

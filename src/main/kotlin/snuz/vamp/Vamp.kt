@@ -20,6 +20,7 @@ import net.minecraft.util.math.Vec3d
 import net.minecraft.world.GameRules
 import org.slf4j.LoggerFactory
 import snuz.vamp.mixin.ServerWorldAccessors
+import snuz.vamp.network.AmaterasuPayload
 import snuz.vamp.network.BloodSuckPayload
 import snuz.vamp.network.CloakAbilityPayload
 import snuz.vamp.network.FlyingRaijinPayload
@@ -176,6 +177,40 @@ object Vamp : ModInitializer {
             } else {
                 plr.removeStatusEffect(StatusEffects.INVISIBILITY)
             }
+        }
+
+        // * Amaterasu
+        PayloadTypeRegistry.playC2S().register(AmaterasuPayload.ID, AmaterasuPayload.CODEC)
+        ServerPlayNetworking.registerGlobalReceiver(AmaterasuPayload.ID) { payload, context ->
+            val plr = context.player()
+            val plrPos = plr.pos
+            val targetPos = payload.targetPos
+            val world = plr.serverWorld
+
+            // Player checks
+            val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@registerGlobalReceiver
+            if (playerState.vampireLevel < 43) return@registerGlobalReceiver
+            val amaterasuRange = 500.0 // TODO: Make this configurable
+            if (!targetPos.isWithinDistance(plrPos, amaterasuRange)) return@registerGlobalReceiver
+
+            /* NOTES:
+              The amaterasu flame should "drip" off of things initially.
+              Then it is an inextinguishable black flame.
+              It only burns through blocks initially which is
+              done by the server here, so the flame does not have
+              a block destruction property at all.
+              Entities do not stop burning once lit.
+              The flame should easily exist when submerge or on top of water.
+            */
+
+            // World checks
+            val targetBlock = world.getBlockState(targetPos)
+            val underBlock = world.getBlockState(targetPos.down())
+            if (targetBlock.isAir) return@registerGlobalReceiver // TODO: Drip out of the air at a reduced range
+
+            // TODO: Use targetBlock as a central point to iterate from
+
+            plr.sendMessage(Text.literal("Amaterasu!!"))
         }
 
         // * Flying Raijin

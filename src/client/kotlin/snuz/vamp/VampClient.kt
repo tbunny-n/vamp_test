@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.event.player.UseEntityCallback
+import net.minecraft.client.MinecraftClient
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
 import net.minecraft.entity.Entity
@@ -12,7 +13,10 @@ import net.minecraft.entity.mob.PillagerEntity
 import net.minecraft.entity.mob.ZombieEntity
 import net.minecraft.entity.passive.*
 import net.minecraft.util.ActionResult
+import net.minecraft.util.hit.BlockHitResult
+import net.minecraft.util.hit.EntityHitResult
 import org.lwjgl.glfw.GLFW
+import snuz.vamp.network.AmaterasuPayload
 import snuz.vamp.network.BloodSuckPayload
 import snuz.vamp.network.CloakAbilityPayload
 import snuz.vamp.network.FlyingRaijinPayload
@@ -21,10 +25,12 @@ object VampClient : ClientModInitializer {
     private const val RAIJIN_COOLDOWN: Double = 1.5
     private const val CLOAK_COOLDOWN: Double = 1.5
     private const val SPEED_COOLDOWN: Double = 1.5
+    private const val AMATERASU_COOLDOWN: Double = 1.5
 
     private lateinit var RAIJIN_KEYBIND: KeyBinding
     private lateinit var CLOAK_KEYBIND: KeyBinding
     private lateinit var SPEED_KEYBIND: KeyBinding
+    private lateinit var AMATERASU_KEYBIND: KeyBinding
 
     private val FEASTABLE_MOBS: List<Class<out Entity>> = listOf(
         VillagerEntity::class.java,
@@ -62,6 +68,14 @@ object VampClient : ClientModInitializer {
                 "category.vamp"
             )
         )
+        AMATERASU_KEYBIND = KeyBindingHelper.registerKeyBinding(
+            KeyBinding(
+                "key.vamp.amaterasu",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_X,
+                "category.vamp"
+            )
+        )
 
         // Blood sucking
         UseEntityCallback.EVENT.register { player, world, hand, entity, hitResult ->
@@ -80,10 +94,24 @@ object VampClient : ClientModInitializer {
             while (CLOAK_KEYBIND.wasPressed()) {
                 ClientPlayNetworking.send(CloakAbilityPayload)
             }
+            while (AMATERASU_KEYBIND.wasPressed()) {
+                // Get blocks player is looking at
+                val amaterasuPayload = amaterasuClient(client) ?: break // am i stupid
+                ClientPlayNetworking.send(amaterasuPayload)
+            }
             while (SPEED_KEYBIND.wasPressed()) {
                 TODO()
             }
         }
-        // Networking
+    }
+
+    private fun amaterasuClient(client: MinecraftClient): AmaterasuPayload? {
+        val hit = client.crosshairTarget ?: return null
+        if (hit is BlockHitResult) {
+            return AmaterasuPayload(hit.blockPos)
+        } else if (hit is EntityHitResult) {
+            return AmaterasuPayload(hit.entity.blockPos)
+        }
+        return null
     }
 }
