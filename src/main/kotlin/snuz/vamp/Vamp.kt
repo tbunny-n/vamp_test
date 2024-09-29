@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net.minecraft.block.Blocks
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.effect.StatusEffectInstance
 import net.minecraft.entity.effect.StatusEffects
@@ -16,6 +17,7 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
+import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.GameRules
 import org.slf4j.LoggerFactory
@@ -34,6 +36,7 @@ object Vamp : ModInitializer {
 
     private const val BLOOD_SUCK_RANGE: Double = 9.0
     private const val DAYLIGHT_EVENT_INTERVAL: Long = 200L
+    const val AMATERASU_RANGE = 500.0 // TODO: Make this configurable
 
     override fun onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -190,8 +193,7 @@ object Vamp : ModInitializer {
             // Player checks
             val playerState = StateSaverAndLoader.getPlayerState(plr) ?: return@registerGlobalReceiver
             if (playerState.vampireLevel < 43) return@registerGlobalReceiver
-            val amaterasuRange = 500.0 // TODO: Make this configurable
-            if (!targetPos.isWithinDistance(plrPos, amaterasuRange)) return@registerGlobalReceiver
+            if (!targetPos.isWithinDistance(plrPos, AMATERASU_RANGE)) return@registerGlobalReceiver
 
             /* NOTES:
               The amaterasu flame should "drip" off of things initially.
@@ -203,12 +205,20 @@ object Vamp : ModInitializer {
               The flame should easily exist when submerge or on top of water.
             */
 
-            // World checks
-            val targetBlock = world.getBlockState(targetPos)
-            val underBlock = world.getBlockState(targetPos.down())
-            if (targetBlock.isAir) return@registerGlobalReceiver // TODO: Drip out of the air at a reduced range
+            BlockPos.iterate(targetPos.add(-2, -2, -2), targetPos.add(2, 2, 2)).forEach { pos ->
+                // Light surrounding blocks
+                if (world.isAir(pos.up())) {
+                    world.setBlockState(pos.up(), Blocks.FIRE.defaultState, 3)
+                }
 
-            // TODO: Use targetBlock as a central point to iterate from
+                // Drip down
+                var lastAirBlock = pos.down()
+                while (world.isAir(lastAirBlock)) {
+                    lastAirBlock = lastAirBlock.down()
+                }
+
+                world.setBlockState(lastAirBlock.up(), Blocks.FIRE.defaultState, 3)
+            }
 
             plr.sendMessage(Text.literal("Amaterasu!!"))
         }

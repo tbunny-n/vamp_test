@@ -16,6 +16,7 @@ import net.minecraft.util.ActionResult
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.hit.EntityHitResult
 import org.lwjgl.glfw.GLFW
+import snuz.vamp.Vamp.AMATERASU_RANGE
 import snuz.vamp.network.AmaterasuPayload
 import snuz.vamp.network.BloodSuckPayload
 import snuz.vamp.network.CloakAbilityPayload
@@ -106,7 +107,7 @@ object VampClient : ClientModInitializer {
     }
 
     private fun amaterasuClient(client: MinecraftClient): AmaterasuPayload? {
-        val hit = client.crosshairTarget ?: return null
+        val hit = client.cameraEntity?.raycast(AMATERASU_RANGE, 1.0F, true) ?: return null
         if (hit is BlockHitResult) {
             return AmaterasuPayload(hit.blockPos)
         } else if (hit is EntityHitResult) {
