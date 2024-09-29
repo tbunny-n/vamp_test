@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos
 private const val DEFAULT_EFFECT_DURATION: Int = 300
 private const val NIGHT_VISION_DURATION: Int = 800 // Can't be too low due to epilepsy trigger !!
 private const val ICKY_BLOOD_NAUSEA_DURATION: Int = 500
+private const val SUNLIGHT_FIRE_DURATION: Float = 4f
 
 class PlayerData {
     var hasSanguinare: Boolean = true // Sanguinare is what turns players into vamps
@@ -197,7 +198,7 @@ class PlayerData {
         if (!plr.isAlive) return
         if (sanguinareProgress > 0.1) {
             if (isPlayerInSunlight(plr)) {
-                plr.setOnFireFor(8f)
+                plr.setOnFireFor(SUNLIGHT_FIRE_DURATION)
                 plr.addStatusEffect(
                     StatusEffectInstance(
                         StatusEffects.WEAKNESS,
