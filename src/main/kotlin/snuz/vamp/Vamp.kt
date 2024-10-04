@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-import net.minecraft.block.Blocks
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.effect.StatusEffectInstance
 import net.minecraft.entity.effect.StatusEffects
@@ -211,7 +210,7 @@ object Vamp : ModInitializer {
             BlockPos.iterate(targetPos.add(-2, -2, -2), targetPos.add(2, 2, 2)).forEach { pos ->
                 // Light surrounding blocks
                 if (world.isAir(pos.up())) {
-                    world.setBlockState(pos.up(), Blocks.FIRE.defaultState)
+                    world.setBlockState(pos.up(), ModBlocks.BLACK_FLAME_BLOCK.defaultState)
                 }
 
                 // Drip down
@@ -221,7 +220,7 @@ object Vamp : ModInitializer {
                 }
 
                 if (world.isAir(lastAirBlock.up())) {
-                    world.setBlockState(lastAirBlock.up(), Blocks.FIRE.defaultState)
+                    world.setBlockState(lastAirBlock.up(), ModBlocks.BLACK_FLAME_BLOCK.defaultState)
                 }
             }
 

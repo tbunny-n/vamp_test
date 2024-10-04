@@ -15,12 +15,12 @@ object ModBlocks {
     private val logger = Vamp.LOGGER
 
     val BLACK_FLAME_BLOCK: Block = registerBlock(
-        "black_flame_block.json",
-        Block(
+        "black_flame_block",
+        BlackFlameBlock(
             AbstractBlock.Settings.create()
                 .mapColor(MapColor.BLACK)
                 .noCollision()
-                .luminance { _ -> 15 }
+                .luminance { _ -> 10 }
                 .pistonBehavior(PistonBehavior.IGNORE)
         )
     )
