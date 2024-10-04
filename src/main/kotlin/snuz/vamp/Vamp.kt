@@ -21,6 +21,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.GameRules
 import org.slf4j.LoggerFactory
+import snuz.vamp.block.ModBlocks
 import snuz.vamp.mixin.ServerWorldAccessors
 import snuz.vamp.network.AmaterasuPayload
 import snuz.vamp.network.BloodSuckPayload
@@ -28,7 +29,7 @@ import snuz.vamp.network.CloakAbilityPayload
 import snuz.vamp.network.FlyingRaijinPayload
 
 object Vamp : ModInitializer {
-    private val logger = LoggerFactory.getLogger("vamp")
+    val LOGGER = LoggerFactory.getLogger("vamp")
 
     const val MOD_ID = "vamp"
 
@@ -42,6 +43,8 @@ object Vamp : ModInitializer {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
         // However, some things (like resources) may still be uninitialized.
         // Proceed with mild caution.
+
+        ModBlocks.registerModBlocks()
 
         // ? Not sure that I actually want to run this every tick
         ServerTickEvents.END_SERVER_TICK.register { server ->
@@ -94,11 +97,11 @@ object Vamp : ModInitializer {
             val plr = networkHandler.player
             val playerState = StateSaverAndLoader.getPlayerState(plr)
             if (playerState == null) {
-                logger.info("Player state could not be loaded for player: [${plr.name} | ${plr.id}]")
+                LOGGER.info("Player state could not be loaded for player: [${plr.name} | ${plr.id}]")
                 return@register
             }
 
-            logger.info("Player state loaded for player: [${plr.name} | ${plr.id}]")
+            LOGGER.info("Player state loaded for player: [${plr.name} | ${plr.id}]")
         }
         // Networking events --
 

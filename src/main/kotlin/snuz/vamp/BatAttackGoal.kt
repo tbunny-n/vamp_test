@@ -3,12 +3,11 @@ package snuz.vamp
 import net.minecraft.entity.ai.goal.Goal
 import net.minecraft.entity.passive.BatEntity
 import net.minecraft.text.Text
-import org.slf4j.LoggerFactory
 import java.util.*
 import kotlin.random.Random
 
 class BatAttackGoal(private val bat: BatEntity) : Goal() {
-    private val logger = LoggerFactory.getLogger("vamp")
+    private val logger = Vamp.LOGGER
 
     // Bat Attack & Movement Settings
     private val attackIntervalInTicks = 20 // Time between attacks

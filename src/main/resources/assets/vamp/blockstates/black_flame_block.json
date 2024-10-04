@@ -1,3 +1,7 @@
 {
-    "variants": {
+  "variants": {
+    "": {
+      "model": "vamp:block/black_flame_block"
+    }
+  }
 }
