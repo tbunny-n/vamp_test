@@ -105,11 +105,15 @@ object VampClient : ClientModInitializer {
             }
 
             // Increment tick counters for cooldowns
-            lastRaijin++
-            lastCloak++
-            lastAmaterasu++
-            lastSpeed++
+            lastRaijin = updateCounter(lastRaijin, RAIJIN_COOLDOWN)
+            lastCloak = updateCounter(lastCloak, CLOAK_COOLDOWN)
+            lastAmaterasu = updateCounter(lastAmaterasu, AMATERASU_COOLDOWN)
+            lastSpeed = updateCounter(lastSpeed, SPEED_COOLDOWN)
         }
+    }
+
+    private fun updateCounter(counter: Int, cooldown: Int): Int {
+        return (counter + 1).coerceAtMost(cooldown)
     }
 
     private fun amaterasuClient(client: MinecraftClient): AmaterasuPayload? {
