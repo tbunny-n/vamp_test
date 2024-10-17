@@ -8,7 +8,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.world.WorldAccess
 
-const val BLACK_FLAME_DAMAGE = 4.0f // TODO: Make configurable or dynamic
+const val BLACK_FLAME_DAMAGE = 9.0f // TODO: Make configurable or dynamic
 
 class BlackFlameBlock(settings: Settings) : AbstractFireBlock(settings, BLACK_FLAME_DAMAGE) {
     companion object {

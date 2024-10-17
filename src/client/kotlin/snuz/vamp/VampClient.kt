@@ -26,7 +26,7 @@ object VampClient : ClientModInitializer {
     private const val RAIJIN_COOLDOWN: Int = 30
     private const val CLOAK_COOLDOWN: Int = 50
     private const val SPEED_COOLDOWN: Int = 50
-    private const val AMATERASU_COOLDOWN: Int = 500
+    private const val AMATERASU_COOLDOWN: Int = 30 // 500
     private var lastRaijin = RAIJIN_COOLDOWN
     private var lastCloak = CLOAK_COOLDOWN
     private var lastSpeed = SPEED_COOLDOWN

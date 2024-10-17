@@ -4,6 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "BatMixin",
+    "IronGolemMixin",
+    "MobEntityAccessor",
     "ServerWorldAccessors"
   ],
   "injectors": {
